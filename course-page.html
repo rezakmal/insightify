@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>DicoSight - Courses &amp; Quizzes</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0A2540",
+                        "background-light": "#F8F9FA",
+                        "background-dark": "#111621",
+                        "accent": "#007BFF",
+                        "text-light-body": "#343A40",
+                        "text-dark-body": "#E9ECEF",
+                        "border-light": "#E9ECEF",
+                        "border-dark": "#343A40",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+        <div class="flex h-full min-h-screen">
+            <aside class="flex h-screen w-64 flex-shrink-0 flex-col border-r border-border-light bg-white dark:border-border-dark dark:bg-background-dark fixed left-0 top-0">
+                <div class="flex h-full flex-col justify-between p-4">
+                    <div class="flex flex-col gap-8">
+                        <div class="flex items-center gap-3 px-3 py-2">
+                            <img alt="DicoSight logo" class="size-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADw1-ejT7dwjqA3eUkaE4TdEQSFpHcdRyWzzlIWkfy8qEIbbsvys2qk8whKVAmiy_4e5HVBYFD9aatTOSZl5EXfeiMPWBkcTO5wmoRGtwJ_F4pLsn0V2GjImS1ni2KdZzKp8peQAFJA4tK7nPJjoRlLaJJbcnOsOJW5B3Xxu9kye1N4hnsmgKBK6rcEkp7zfK4oOHQMjrntmHYtKxVUWSe1CmBtM3aMeuE0Scj7P03qTOwMPzOvvPR2sYnBqawXQ2B2MA-p97Dt2dF"/>
+                            <h1 class="text-xl font-bold text-primary dark:text-white">DicoSight</h1>
+                        </div>
+                        <nav class="flex flex-col gap-2">
+                            <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-text-light-body/80 hover:bg-primary/10 dark:text-text-dark-body/80 dark:hover:bg-primary/20" href="#">
+                                <span class="material-symbols-outlined text-text-light-body dark:text-text-dark-body">dashboard</span>
+                                <p class="text-sm font-medium">Dashboard</p>
+                            </a>
+                            <a class="flex items-center gap-3 rounded-lg bg-primary/20 px-3 py-2 text-primary dark:text-white" href="#">
+                                <span class="material-symbols-outlined fill">school</span>
+                                <p class="text-sm font-medium">Course / Quiz</p>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </aside>
+            <div class="ml-64 flex w-[calc(100%-16rem)] flex-1 flex-col">
+                <header class="sticky top-0 z-10 flex items-center justify-end whitespace-nowrap border-b border-border-light bg-background-light px-10 py-3 dark:border-border-dark dark:bg-background-dark">
+                    <div class="flex items-center gap-4">
+                        <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold tracking-wide hover:bg-primary/90">
+                            <span class="truncate">Logout</span>
+                        </button>
+                        <img class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyxR9NwX7nSbw6Q8SHKPs2hATmOmldaOnX89W3HJHPfT7G9a7vJW54anQmcaGybJg5HN63b-KykNEbfP5uJzfcX82Vb2zNSUtoXYZIaL-WzcOq_LE3_MWceIrZo_Ik91s24n-9ivRNF9wlvMiPvjTqa5v5PjzgqtNjdw4O5HyVHaO0g3px2QCU3BsCr0iPVHwFzsDbtzd-wXwWxrddqHLWfu1WKib_RQFParUb7leOSgbbLuP4BBs2pgjwhNGPoBAHC78qjezzpQuL"/>
+                    </div>
+                </header>
+                <main class="flex-1 p-8">
+                    <div class="flex flex-wrap justify-between gap-3 pb-6">
+                        <div class="flex min-w-72 flex-col gap-2">
+                            <p class="text-4xl font-black tracking-tight text-primary dark:text-white">Courses &amp; Quizzes</p>
+                            <p class="text-base font-normal text-text-light-body dark:text-text-dark-body/80">Browse available courses and quizzes to enhance your skills.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-4 pb-6 md:flex-row md:items-center">
+                        <div class="flex-grow">
+                            <label class="flex h-12 w-full flex-col">
+                                <div class="flex h-full w-full flex-1 items-stretch rounded-lg">
+                                    <div class="flex items-center justify-center rounded-l-lg border border-r-0 border-border-light bg-white pl-4 text-text-light-body/60 dark:border-border-dark dark:bg-background-dark/50 dark:text-text-dark-body/60">
+                                        <span class="material-symbols-outlined">search</span>
+                                    </div>
+                                    <input class="form-input h-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg rounded-l-none border border-l-0 border-border-light bg-white px-4 text-base font-normal text-text-light-body placeholder:text-text-light-body/60 focus:border-accent focus:outline-0 focus:ring-0 dark:border-border-dark dark:bg-background-dark/50 dark:text-text-dark-body dark:placeholder:text-text-dark-body/60 dark:focus:border-accent" placeholder="Search for a course or quiz..." value=""/>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-border-light bg-white px-4 hover:bg-primary/10 dark:border-border-dark dark:bg-background-dark/50 dark:hover:bg-primary/20">
+                                <p class="text-sm font-medium text-text-light-body dark:text-text-dark-body">Courses</p>
+                                <span class="material-symbols-outlined text-text-light-body dark:text-text-dark-body">arrow_drop_down</span>
+                            </button>
+                            <button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg border border-border-light bg-white px-4 hover:bg-primary/10 dark:border-border-dark dark:bg-background-dark/50 dark:hover:bg-primary/20">
+                                <p class="text-sm font-medium text-text-light-body dark:text-text-dark-body">Newest</p>
+                                <span class="material-symbols-outlined text-text-light-body dark:text-text-dark-body">arrow_drop_down</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="Abstract network of connected nodes representing machine learning concepts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAazphS47TfZ0bsr9dquakypWQjzRVBrhd0CGjcxZ8ENdKCMOOlyrtSptDyu5ywwBy-weKOsydBwJPa1OUBd6RVDJUVI9whjUq2EdUJYaFjINsX_Sm-OTUcJOl5-Hlb9OyzhHmSz6IedsFtyjNDM_-_YALLmSs7VKZa1vCEB2fdkkE0QaWbep84jsBbPboz_cycQktHAqsRQYUWALtDrfm3xNcgU6eglUsDr4mjdPGKbXh3ANZgSYUgOtVn65eYKlnT0dxdlhOgJ1Fu"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/30 dark:text-white">Course</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Introduction to Machine Learning</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Grasp the fundamental concepts of machine learning and its applications.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Course</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="Laptop screen showing Python code for data analysis" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIxb6OSnrsjIvutzfXcGud_7U0PL-1sKloezvssW0dWPMGwFUMcF_HTfMCNwAVN-YZramz3RmdPW70Jdwt9EvquruVvCdhi9-t8J0dyl9MLaJhf0e7a2SXnIVjgJwEaXGhNuGkDv3TIJOIaNIBE-fb5kN_UujJgXfvnLHxaJpd7Gngms1naiYSQoyfhBeCwEmbADrjAc0bfHE8ghG4cuwd6KfngYg_NGmghdMMS3WUZrRtcc05Nqkxb163vGqz-IbumTZOT8luJU3v"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent dark:bg-accent/30 dark:text-white">Quiz</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Python for Data Science Quiz</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Test your knowledge on key Python libraries like NumPy and Pandas.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Quiz</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="Glowing illustration of a brain made of digital circuits representing neural networks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHrtsIiZN9PDwTkDuvqTndRwdPneu7YMPL_7d3WgjI5N41yy1VG3o4lvUQVhlmodmo9CyxZpO6st0MJo5fy6awFpu-LtwebG92TJ_S6fG_1esseTFiZIEjEnEDgId1GAigLOHfT4k0Pq00zhIhmwz_7bUSxo0hjZ4Vov9CO5QPY1e1SWqxvk4S7OOmBnSmYXYJC2p3PyqXgQek2WF0ko9D0fx4WgDL4yPhrqtNvEAIRcCN94FjYEL5SmrMMx4b1Yyad8sWllLOScOb"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/30 dark:text-white">Course</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Neural Networks Fundamentals</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Learn the basics of neural networks and the core principles of deep learning.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Course</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="Visualization of complex data clusters and connections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy5F8asdgdaxWYklltZ-h0aGtVQ3X9lGhVbQjF7UEuTDne3-pLKsfUucBjvZyeWbqMCp0ZXX30eOfmEKF7uUkvQvQT0SSY_K64VfQaBDVvrl9qHtXK3gFtF0DvtzZqKR3CW4DRAnN7aHFFtrs87c8alK0EBpewMALAY_Wy5FhfZMvki1MmTZDgw4-mjCEgnSEIUFnZfoJVe-_n8nIIlMLxegWf6k7dvcxOX1ZeDe7MwnL3ub4rTcDrIRVfKm-S5KGEdn9Umx9gqsGX"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/30 dark:text-white">Course</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Data Visualization with Matplotlib</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Create compelling charts and graphs to tell stories with your data.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Course</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="A person's hands typing on a laptop with statistical formulas overlayed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIugbzL0pPauSHvctVsFkBGeanmOpYqPD9u_R5f8pmGgYgc5JXjuZ7qvWTJ_GUlvTAs-SMDfzKieLnrywhYKgjJ1Wmfb_MFVvy4FjpbjO9n8AutrDBJBiQjce-1KU1tSYCmDJyBMHKggvo0IsIYwyqErWJF3ukUZUSGx1Xyd_20EOH44N5KX_BPIGXgzX3LJKQ9AtuNN0qE-lRI2cHTi22vlvw33lpHmXZKshUn0YRqZ7X0ncYi9hvxlqixbJ5zCG6UaM_T_IS5L8H"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent dark:bg-accent/30 dark:text-white">Quiz</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Statistics for AI Quiz</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Evaluate your understanding of probability and statistical concepts for AI.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Quiz</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col overflow-hidden rounded-xl border border-border-light bg-white transition-shadow duration-300 hover:shadow-lg dark:border-border-dark dark:bg-background-dark/50 dark:hover:shadow-black/20">
+                            <img class="h-40 w-full object-cover" data-alt="A close-up of a computer motherboard with intricate circuits" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPeMb9BycK0YYwiBkAtVdAe3WA6uWow0AvJhpMpR5xF983dEHgLHv1Yu0c4MZWpySyBY8hSGuot6_kE0v40t3v61D9dseKAXu3adVYUVtSbs2xqrKFsM1QieyDU3v2O0-M3we5IUq-c0TsNymATpd7qCVelmmpOH4Fd4CEX4IbZp4MpVMKJk0MIlF0i3hOYqx0WQU9iENO5V7yEbjXroJfzZxPXDzsLwkeB5ILxjnW_UXG5dwbNaNljysv4ddPqj8D3MvdFg2cuk9t"/>
+                            <div class="flex flex-1 flex-col p-4">
+                                <div class="flex-1">
+                                    <span class="mb-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/30 dark:text-white">Course</span>
+                                    <h3 class="text-lg font-bold text-primary dark:text-white">Advanced Deep Learning</h3>
+                                    <p class="mt-2 text-sm text-text-light-body dark:text-text-dark-body/80">Explore complex architectures like Transformers and GANs.</p>
+                                </div>
+                                <button class="mt-4 flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-accent px-4 text-sm font-bold text-white tracking-wide hover:bg-accent/90">
+                                    <span>Start Course</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    
+</body></html>

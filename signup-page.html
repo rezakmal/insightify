@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sign Up - AI Learning Insight</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            // No dark mode class
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1E3A8A", // Retaining user's dark blue
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#111827",
+                        "accent": "#3B82F6", // Adjusted for light theme
+                        "text-main": "#111827",
+                        "text-secondary": "#6B7280",
+                        "error": "#EF4444",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light text-text-main">
+    <div class="relative flex min-h-screen w-full flex-col group/design-root">
+        <div class="layout-container flex h-full grow flex-col">
+            <div class="flex flex-1 items-stretch">
+                <div class="hidden flex-1 flex-col items-center justify-center bg-primary p-10 relative overflow-hidden lg:flex lg:flex-[0_0_50%]">
+                    <div class="absolute inset-0 z-0 opacity-10">
+                        <img class="h-full w-full object-cover" data-alt="Abstract neural network graphic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhdS8TmEoiWou8emmnUhhzsyoRGhDbHpoMZtto1cirzJiJujVIZYsAs3BoprBJ-at1zYwNXWAj0yepbgO2crIhcY0mDKUXoXRcyF5CCNmfsc5G674CF0WgyOyXxvEKl8wVLIi-2rEY0mQA5wbREIAWOkv5iUZiFSo3Y-qAfGrMXDegoE9VEcwHcwLoH0k-eqa-mJvMcZT-1ydUPtRmuXiif6P3LHIunF0z9H7KjrkxRVZNFS9y9kTbAqwp3K5axKwcFY2BjYeDD-Ik"/>
+                    </div>
+                    <div class="relative z-10 flex max-w-md flex-col items-start gap-8">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-5xl text-blue-300">insights</span>
+                            <span class="text-3xl font-bold text-white">InsightAI</span>
+                        </div>
+                        <h2 class="text-5xl font-bold tracking-tight text-white">Unlock Deeper Learning with AI</h2>
+                        <p class="text-lg text-blue-200">Analyze patterns, gain insights, and accelerate your learning journey like never before.</p>
+                    </div>
+                </div>
+                <div class="flex-1 items-center justify-center p-6 sm:p-8 md:p-12 lg:flex lg:flex-[0_0_50%]">
+                    <div class="flex w-full max-w-md flex-col gap-6">
+                        <div class="flex flex-col gap-2 text-center lg:text-left">
+                            <h1 class="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">Create an Account</h1>
+                            <p class="text-base font-normal text-text-secondary">Get started for free. No credit card required.</p>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <button class="flex h-12 w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-gray-300 bg-white px-5 text-base font-bold tracking-wide text-text-main transition-colors hover:bg-gray-50">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.578 12.235c0-.819-.073-1.605-.213-2.365H12.24v4.47h5.783a5.09 5.09 0 0 1-2.226 3.322v2.899h3.708c2.174-2.001 3.42-4.945 3.42-8.326Z" fill="#4285F4"></path><path d="M12.24 23c3.246 0 5.955-1.078 7.939-2.918l-3.708-2.899c-1.084.729-2.463 1.16-4.231 1.16-3.268 0-6.032-2.21-7.018-5.18H1.42v2.99C3.395 20.255 7.502 23 12.24 23Z" fill="#34A853"></path><path d="M5.222 13.843a7.42 7.42 0 0 1 0-4.686V6.16H1.42a11.93 11.93 0 0 0 0 10.68l3.802-2.997Z" fill="#FBBC05"></path><path d="M12.24 4.654c1.758 0 3.357.605 4.606 1.801l3.287-3.287C18.19.988 15.485 0 12.24 0 7.502 0 3.395 2.745 1.42 6.16l3.802 2.997C6.208 6.863 8.972 4.654 12.24 4.654Z" fill="#EA4335"></path></svg>
+                                <span class="truncate">Sign Up with Google</span>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <hr class="flex-1 border-gray-200"/>
+                            <p class="text-sm font-normal text-text-secondary">OR</p>
+                            <hr class="flex-1 border-gray-200"/>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-base font-medium text-text-main" for="full-name">Full Name</label>
+                                <input class="form-input h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white px-4 text-base font-normal text-text-main placeholder:text-text-secondary focus:border-accent focus:outline-0 focus:ring-2 focus:ring-accent/50" id="full-name" placeholder="Enter your full name" type="text" value=""/>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-base font-medium text-text-main" for="email">Email Address</label>
+                                <input class="form-input h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white px-4 text-base font-normal text-text-main placeholder:text-text-secondary focus:border-accent focus:outline-0 focus:ring-2 focus:ring-accent/50" id="email" placeholder="you@example.com" type="email" value=""/>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-base font-medium text-text-main" for="password">Password</label>
+                                <div class="relative">
+                                    <input class="form-input h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white pl-4 pr-10 text-base font-normal text-text-main placeholder:text-text-secondary focus:border-accent focus:outline-0 focus:ring-2 focus:ring-accent/50" id="password" placeholder="Enter your password" type="password" value=""/>
+                                    <button class="absolute inset-y-0 right-0 flex items-center pr-3 text-text-secondary hover:text-text-main">
+                                        <span class="material-symbols-outlined">visibility_off</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <button class="flex h-12 w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold tracking-wide text-white transition-colors hover:bg-primary/90">
+                                <span class="truncate">Create Account</span>
+                            </button>
+                            <p class="text-center text-xs text-text-secondary">By signing up, you agree to our <a class="font-medium text-accent hover:underline" href="#">Terms of Service</a> and <a class="font-medium text-accent hover:underline" href="#">Privacy Policy</a>.</p>
+                        </div>
+                        <p class="text-center text-sm text-text-secondary">Already have an account? <a class="font-semibold text-accent hover:underline" href="#">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body></html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Log In - AI Learning Insight</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0A192F",
+                        "accent": "#1754cf",
+                        "text-dark": "#0A192F",
+                        "text-neutral": "#64748b",
+                        "border-light": "#e2e8f0",
+                        "input-bg-light": "#ffffff",
+                        "error": "#E57373"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display">
+    <div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light group/design-root overflow-x-hidden">
+        <div class="flex flex-1 w-full">
+            <div class="flex flex-1 flex-col items-center justify-center">
+                <main class="w-full max-w-7xl mx-auto flex flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 flex-1">
+                        <div class="hidden md:flex flex-col items-center justify-center bg-primary p-12">
+                            <div class="flex flex-col items-center justify-center gap-8 text-center max-w-md">
+                                <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" data-alt="Abstract visualization of a neural network with glowing nodes and connections." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAFu5fMR8BBW3C2RgF6-WH6e7o8GQyzc26ydq-on2Ncje3Zaleg14iE3dmkLb0qozzx0X6h-OdTU-t47yLryh_aN-bo957hECp5RivYKVhyBQeu1vQfC5aO6QQojTkkFdjiRva0p0XuKAiPwSAoWoLcMgBOj6VnXykEuZJrkrViAoG3E8YR6BvlBG8yvwBQQ6SQuNNMZHX57hPSodakIthsIQ-G6RHR5RUE8PpYqmxb-KZ08tqScg5sqxPCFFYHNg57E5I9HHD0o8wS");'></div>
+                                <div class="flex flex-col gap-4">
+                                    <h1 class="text-3xl font-bold tracking-tight text-white">
+                                        AI Learning Insight
+                                    </h1>
+                                    <p class="text-lg text-slate-200">
+                                        Unlock Your Learning Potential with AI.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-1 flex-col justify-center items-center p-6 sm:p-8 md:p-12">
+                            <div class="w-full max-w-md flex flex-col gap-8">
+                                <div class="flex flex-col gap-2 text-left">
+                                    <h1 class="text-text-dark text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                                        Log In to Your Dashboard
+                                    </h1>
+                                    <h2 class="text-text-neutral text-base font-normal leading-normal">
+                                        Don't have an account? <a class="text-accent hover:underline font-medium" href="#">Create an account</a>
+                                    </h2>
+                                </div>
+                                <div class="flex flex-col gap-6">
+                                    <button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-input-bg-light border border-border-light text-text-dark text-base font-bold leading-normal tracking-[0.015em] hover:bg-slate-50 transition-colors">
+                                        <svg class="mr-3" height="20" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.686H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.356 32.783c10.59-31.477 39.891-54.251 74.269-54.251" fill="#EB4335"></path></svg>
+                                        <span class="truncate">Continue with Google</span>
+                                    </button>
+                                    <div class="flex items-center gap-4">
+                                        <hr class="flex-1 border-t border-border-light"/>
+                                        <span class="text-sm text-text-neutral">OR</span>
+                                        <hr class="flex-1 border-t border-border-light"/>
+                                    </div>
+                                    <label class="flex flex-col w-full">
+                                        <p class="text-text-dark text-base font-medium leading-normal pb-2">Email</p>
+                                        <div class="relative flex w-full flex-1 items-stretch">
+                                            <span class="material-symbols-outlined text-text-neutral absolute left-3.5 top-1/2 -translate-y-1/2">mail</span>
+                                            <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light border border-border-light bg-input-bg-light h-14 placeholder:text-text-neutral pl-12 pr-4 py-2 text-base font-normal leading-normal" placeholder="you@example.com" type="email" value=""/>
+                                        </div>
+                                    </label>
+                                    <label class="flex flex-col w-full">
+                                        <p class="text-text-dark text-base font-medium leading-normal pb-2">Password</p>
+                                        <div class="relative flex w-full flex-1 items-stretch">
+                                            <span class="material-symbols-outlined text-text-neutral absolute left-3.5 top-1/2 -translate-y-1/2">lock</span>
+                                            <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light border border-border-light bg-input-bg-light h-14 placeholder:text-text-neutral pl-12 pr-12 py-2 text-base font-normal leading-normal" placeholder="Enter your password" type="password" value=""/>
+                                            <button aria-label="Toggle password visibility" class="text-text-neutral absolute right-3.5 top-1/2 -translate-y-1/2 hover:text-text-dark">
+                                                <span class="material-symbols-outlined">visibility_off</span>
+                                            </button>
+                                        </div>
+                                    </label>
+                                    <a class="text-accent text-sm font-medium leading-normal self-start underline hover:no-underline" href="#">Forgot Password?</a>
+                                    <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 w-full bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light transition-colors">
+                                        <span class="truncate">Log In</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+</body></html>
