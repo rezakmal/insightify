@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import BlacklistedToken from "../models/BlacklistedToken.js";
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
@@ -47,9 +48,19 @@ export const profile = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader)
+    return res.status(400).json({ message: "No token provided" });
+
+  const token = authHeader.split(" ")[1];
+
   try {
-    return res.json({ message: "Logut successful" });
+    // add token to the blacklist
+    await BlacklistedToken.create({ token });
+
+    res.json({ message: "Logout successful (server-side)" });
   } catch (err) {
-    res.status(500).json({ message: "Failed to logout" });
+    res.status(500).json({ message: "Logout failed" });
   }
-}
+};
