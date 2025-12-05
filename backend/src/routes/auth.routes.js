@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
-router.get("/profile", protect, profile);
-router.post("/logout", protect, logout)
+router.get("/profile", protect, profile); // Query: ?userId=...
+router.post("/logout", logout); // Body: { userId: "..." } or Query: ?userId=...
 
 export default router;
