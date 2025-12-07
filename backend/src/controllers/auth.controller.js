@@ -63,23 +63,14 @@ export const profile = async (req, res) => {
   res.json(req.user);
 };
 
-// Logout with validation - require userId to ensure authenticated user
+// Logout - user can only logout themselves (protected by middleware)
 export const logout = async (req, res) => {
   try {
-    const userId = (req.body && req.body.userId) || (req.query && req.query.userId);
+    // req.user is already set by protect middleware
+    // This ensures user can only logout themselves, not other users
+    const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
-
-    // Validate that user exists
-    const user = await User.findById(userId).select("-password");
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if user has active session (must be logged in to logout)
+    // Check if user has active session (should always be true if protect middleware passed)
     const activeSession = await Session.findOne({ userId });
 
     if (!activeSession) {
@@ -89,12 +80,12 @@ export const logout = async (req, res) => {
     }
 
     // Delete active session (invalidate session)
-    await Session.deleteOne({ userId: user._id });
+    await Session.deleteOne({ userId });
 
     // Logout successful - frontend should remove userId from storage
     res.json({ 
       message: "Logout successful",
-      userId: user._id.toString()
+      userId: userId.toString()
     });
   } catch (err) {
     res.status(500).json({ message: "Logout failed", error: err.message });
