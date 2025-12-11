@@ -1,25 +1,48 @@
 import logging
 import time
 from pathlib import Path
+import joblib
+import numpy as np
 
 from fastapi import FastAPI, HTTPException, Response
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
+from prepare_data import Prepare
+
 app = FastAPI()
 
-# Placeholder for future inference implementation
 class ClusterInferenceService:
-    def __init__(self, model_dir: Path):
-        self.model_dir = model_dir
-        # TODO: load model, scaler, etc. when implementation is added
+    def __init__(self, model_path: Path, scaler_path: Path, centroids_path: Path):
+        self.model_path = model_path
+        self.scaler_path = scaler_path
+        self.centroids_path = centroids_path
 
-    def infer(self, user_id: int):
-        # TODO: implement inference logic using user_id
-        raise NotImplementedError("Cluster inference is not implemented yet.")
+        # load model, scaler, centroids
+        # self.model = joblib.load(self.model_path)
+        self.scaler = joblib.load(self.scaler_path)
+        self.centroids = np.load(self.centroids_path)
+
+    def infer(self, user_id: str):
+        # prepare data
+        prepare = Prepare(user_id)
+        df_features = prepare.prepare_features()
+        # scale data
+        df_features_scaled = self.scaler.transform(df_features)
+        # assign to nearest centroid (Agglomerative lacks predict)
+        distances = np.linalg.norm(self.centroids - df_features_scaled, axis=1)
+        best_idx = int(np.argmin(distances))
+        return {"cluster": best_idx, "distance": float(distances[best_idx])}
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-service = ClusterInferenceService(model_dir=BASE_DIR / "models")
+MODEL_PATH = BASE_DIR / "models" / "agg_model_41_4n.pkl"
+SCALER_PATH = BASE_DIR / "models" / "agg_scaler.pkl"
+CENTROIDS_PATH = BASE_DIR / "models" / "agg_centroids.npy"
+service = ClusterInferenceService(
+    model_path=MODEL_PATH,
+    scaler_path=SCALER_PATH,
+    centroids_path=CENTROIDS_PATH,
+)
 
 # Prometheus metrics
 INFERENCE_REQUESTS = Counter(
@@ -46,7 +69,7 @@ def get_user_class():
 
 
 @app.post("/cluster-inference")
-def cluster_inference(user_id: int):
+def cluster_inference(user_id: str):
     """
     Predict cluster for a user using their user_id.
     Inference logic will be delegated to ClusterInferenceService (to be implemented).
