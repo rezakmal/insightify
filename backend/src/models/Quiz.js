@@ -6,6 +6,10 @@ const quizSchema = new mongoose.Schema({
     type: Date,
     required: false, // optional, bisa diisi admin kalau mau pake deadline
   },
+  maximumDuration: {
+  type: Number,
+  default: 600, // 10 menit  
+  },
   questions: [
     {
       _id: false,

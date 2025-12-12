@@ -1,10 +1,23 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import Quiz from "../models/Quiz.js";
 import Module from "../models/Module.js";
 import connectDB from "../config/db.js";
 
-dotenv.config();
+// ---- dotenv: allow custom path via ENV_PATH (optional) ----
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Default: load .env from current working directory.
+// If your .env is in /backend/.env while you run from repo root, set ENV_PATH=backend/.env
+dotenv.config({
+  path: process.env.ENV_PATH
+    ? path.resolve(process.cwd(), process.env.ENV_PATH)
+    : undefined
+});
 
 const requireValidObjectId = (id, label) => {
   if (!mongoose.isValidObjectId(id)) {
@@ -17,16 +30,10 @@ const seedQuizData = async () => {
     await connectDB();
     console.log("✅ Connected to MongoDB");
 
-    if (process.env.SEED_RESET === "true") {
-      await Quiz.deleteMany({});
-      console.log("🧹 Cleared existing quiz data (SEED_RESET=true)");
-    } else {
-      console.log("ℹ️  Skipped clearing quizzes (set SEED_RESET=true to reset)");
-    }
-
     const quizDataArray = [
       {
-        moduleId: "693c037ffcfab60a29730fc4",
+        moduleId: "693c66430aa65ab8d034e727",
+        maximalDuration: 600,
         questions: [
           {
             question: "Apa itu JavaScript?",
@@ -35,38 +42,57 @@ const seedQuizData = async () => {
           },
           {
             question: "Apa yang dimaksud Function?",
-            options: ["File penyimpanan data", "Sebuah variable khusus", "Tipe data baru", "Kumpulan kode yang dapat dipanggil ulang"],
+            options: [
+              "File penyimpanan data",
+              "Sebuah variable khusus",
+              "Tipe data baru",
+              "Kumpulan kode yang dapat dipanggil ulang"
+            ],
             answer: 3
           },
           {
             question: "Apa itu OOP?",
-            options: ["Sebuah library khusus", "Format penyimpanan JSON", "Framework pada JavaScript", "Sebuah paradigma pemrograman"],
+            options: [
+              "Sebuah library khusus",
+              "Format penyimpanan JSON",
+              "Framework pada JavaScript",
+              "Sebuah paradigma pemrograman"
+            ],
             answer: 3
           },
           {
             question: "Apa itu callback?",
-            options: ["Perintah untuk menghentikan program", "Variable global", "Fungsi yang dipanggil setelah fungsi lain selesai", "Method bawaan browser"],
+            options: [
+              "Perintah untuk menghentikan program",
+              "Variable global",
+              "Fungsi yang dipanggil setelah fungsi lain selesai",
+              "Method bawaan browser"
+            ],
             answer: 2
           },
           {
             question: "Apa itu promise?",
-            options: ["Array khusus", "Objek untuk menangani operasi asynchronous", "Tipe data string baru", "Fungsi bawaan JavaScript"],
+            options: [
+              "Array khusus",
+              "Objek untuk menangani operasi asynchronous",
+              "Tipe data string baru",
+              "Fungsi bawaan JavaScript"
+            ],
             answer: 1
           }
         ]
       }
     ];
 
-    // Validate & check modules exist
+    // ---- Validate data & ensure modules exist ----
     for (const [i, q] of quizDataArray.entries()) {
       requireValidObjectId(q.moduleId, `quizDataArray[${i}].moduleId`);
 
-      const moduleExists = await Module.findById(q.moduleId).select("_id");
+      const moduleExists = await Module.findById(q.moduleId).select("_id").lean();
       if (!moduleExists) {
         throw new Error(`Module not found for moduleId: ${q.moduleId} (quiz index ${i})`);
       }
 
-      // Validate questions: 4 options and answer range
       q.questions.forEach((question, qi) => {
         if (!Array.isArray(question.options) || question.options.length !== 4) {
           throw new Error(`Quiz ${i} question ${qi}: options must have exactly 4 items`);
@@ -76,6 +102,12 @@ const seedQuizData = async () => {
         }
       });
     }
+
+    // ---- RESET EXISTING then INSERT NEW (for those modules only) ----
+    const moduleIds = [...new Set(quizDataArray.map(q => q.moduleId))];
+
+    const deleteResult = await Quiz.deleteMany({ moduleId: { $in: moduleIds } });
+    console.log(`🧹 Deleted existing quizzes for seeded modules: ${deleteResult.deletedCount}`);
 
     const createdQuizzes = await Quiz.insertMany(quizDataArray, { ordered: true });
 
@@ -91,14 +123,12 @@ const seedQuizData = async () => {
 
     console.log("\n✅ Quiz seeding completed successfully!");
   } catch (error) {
-    console.error("❌ Error seeding quiz data:", error.message);
+    console.error("❌ Error seeding quiz data:", error);
     process.exitCode = 1;
   } finally {
-    // close mongoose connection gracefully
     try {
       await mongoose.connection.close();
     } catch {}
-    process.exit();
   }
 };
 

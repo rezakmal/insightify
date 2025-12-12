@@ -9,11 +9,15 @@ export const startQuiz = async (req, res) => {
   try {
     const moduleId = req.params.moduleId;
     const quiz = await Quiz.findOne({ moduleId });
+    const { courseId } = req.body || {};
 
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }
 
+    if (!courseId) {
+      return res.status(400).json({ message: "courseId is required" });
+    }
     const questions = quiz.questions.map((q) => {
       const options = q.options.map((opt, idx) => ({
         label: String.fromCharCode(65 + idx), // A, B, C, D
@@ -25,6 +29,14 @@ export const startQuiz = async (req, res) => {
         question: q.question,
         options,
       };
+    });
+
+    await Activity.create({
+      user: req.user._id,
+      course: courseId,
+      module: moduleId,
+      type: "quiz_start",
+      occurredAt: new Date(),
     });
 
     return res.json({
@@ -48,6 +60,10 @@ export const submitQuiz = async (req, res) => {
   const moduleId = req.params.moduleId;
   const { answers, courseId } = req.body;
 
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
   if (!courseId) {
     return res.status(400).json({ message: "courseId is required" });
   }
@@ -68,21 +84,35 @@ export const submitQuiz = async (req, res) => {
     let correct = 0;
     const total = quiz.questions.length;
 
-    answers.forEach((answer) => {
-      const question = quiz.questions.find(
-        (q) => q.id.toString() === answer.questionId
-      );
-      if (question && typeof answer.selectedOption === "string") {
-        const selectedIndex = answer.selectedOption.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
 
-        if (selectedIndex === question.answer) {
-          correct++;
-        }
-      }
-    });
+    for (const answer of answers) {
+      const question = quiz.questions.find((q) => q.id.toString() === answer.questionId);
+      if (!question) continue;
 
-    const score = Math.round((correct / total) * 100);
+      if (typeof answer.selectedOption !== "string" || answer.selectedOption.length !== 1) continue;
+
+      const selectedIndex = answer.selectedOption.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+      if (selectedIndex === question.answer) correct++;
+    }
+
+    const score = total === 0 ? 0 : Math.round((correct / total) * 100);
     const passed = score >= 70;
+
+    // compute duration based on latest quiz_start log
+    const lastStart = await Activity.findOne({
+      user: userId,
+      course: courseId,
+      module: moduleId,
+      type: "quiz_start",
+    }).sort({ occurredAt: -1 });
+
+    let duration = null;
+    if (lastStart?.occurredAt) {
+      duration = Math.max(
+        0,
+        Math.round((Date.now() - new Date(lastStart.occurredAt).getTime()) / 1000)
+      );
+    }
 
     const quizResult = await QuizResult.create({
       userId,
@@ -90,6 +120,8 @@ export const submitQuiz = async (req, res) => {
       score,
       totalQuestions: total,
       passed,
+      duration,
+      examFinishedAt: new Date(),
     });
 
     await UserCourse.updateOne(

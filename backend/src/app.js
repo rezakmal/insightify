@@ -53,6 +53,9 @@ app.use(express.json());
 
 connectDB();
 
+app.use("/api/auth", authLimiter);
+app.use("/api/ml", mlLimiter);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/modules", moduleRoutes);
@@ -62,8 +65,6 @@ app.use("/api/users", learningRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/ml", mlRoutes);
-app.use("/api/auth", authLimiter);
-app.use("/api/ml", mlLimiter);
 
 // CHANGED: 404 handler (JSON, not HTML)
 app.use((req, res) => {

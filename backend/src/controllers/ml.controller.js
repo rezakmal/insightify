@@ -1,6 +1,3 @@
-import Activity from "../models/Activity.js";
-import QuizResult from "../models/QuizResult.js";
-import UserCourse from "../models/UserCourse.js";
 import MlProfile from "../models/MlProfile.js";
 import MlRecommendation from "../models/MlRecommendation.js";
 
@@ -12,37 +9,22 @@ const fetchWithTimeout = async (url, options = {}) => {
   const t = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
 
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(t);
   }
 };
 
-const buildRawPayload = async (userId) => {
-  const [activities, quizResults, userCourses] = await Promise.all([
-    Activity.find({ user: userId }).sort({ occurredAt: 1 }).select("-__v"),
-    QuizResult.find({ userId }).sort({ timestamp: 1 }).select("-__v"),
-    UserCourse.find({ userId }).select("-__v"),
-  ]);
-
-  return {
-    userId: userId.toString(),
-    activities,
-    quizResults,
-    userCourses,
-  };
-};
-
 const handleMlNetworkError = (res, err) => {
   const isAbort =
     err?.name === "AbortError" ||
-    (typeof err?.message === "string" && err.message.toLowerCase().includes("aborted"));
+    (typeof err?.message === "string" &&
+      err.message.toLowerCase().includes("aborted"));
 
-  // TypeError: fetch failed (ECONNREFUSED, DNS, dsb)
   const isFetchFailed =
     err instanceof TypeError ||
-    (typeof err?.message === "string" && err.message.toLowerCase().includes("fetch failed"));
+    (typeof err?.message === "string" &&
+      err.message.toLowerCase().includes("fetch failed"));
 
   if (isAbort) {
     return res.status(502).json({
@@ -61,21 +43,26 @@ const handleMlNetworkError = (res, err) => {
   return null;
 };
 
+// helper to call ML cluster inference endpoint
+const callClusterInference = async (userId) => {
+  // ML expects query param: user_id
+  const url = `${ML_BASE_URL}/cluster-inference?user_id=${encodeURIComponent(
+    userId.toString()
+  )}`;
+
+  return await fetchWithTimeout(url, { method: "POST" });
+};
+
 export const generateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const raw = await buildRawPayload(userId);
 
     let resp;
     try {
-      resp = await fetchWithTimeout(`${ML_BASE_URL}/profile/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(raw),
-      });
+      resp = await callClusterInference(userId);
     } catch (err) {
       console.error("Generate profile fetch error:", err);
-      const handled = handleMlNetworkError(res, err); 
+      const handled = handleMlNetworkError(res, err);
       if (handled) return handled;
       return res.status(502).json({ message: "ML service error", detail: err.message });
     }
@@ -107,15 +94,10 @@ export const generateProfile = async (req, res) => {
 export const generateRecommendations = async (req, res) => {
   try {
     const userId = req.user._id;
-    const raw = await buildRawPayload(userId);
 
     let resp;
     try {
-      resp = await fetchWithTimeout(`${ML_BASE_URL}/recommendations/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(raw),
-      });
+      resp = await callClusterInference(userId);
     } catch (err) {
       console.error("Generate recommendations fetch error:", err);
       const handled = handleMlNetworkError(res, err);

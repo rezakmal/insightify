@@ -78,7 +78,7 @@ export const startModule = async (req, res) => {
       course: courseId,
       module: moduleId,
       type: "module_start",
-      occuredAt: new Date()
+      occurredAt: new Date()
     });
 
     return res.json({ message: "Module started" });

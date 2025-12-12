@@ -31,6 +31,10 @@ const quizResultSchema = new Schema(
       type: Boolean,
       required: true,
     },
+    duration: {
+      type: Number,
+      min: 0,
+    },
     timestamp: {
       type: Date,
       default: Date.now,
