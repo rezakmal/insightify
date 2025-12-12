@@ -34,20 +34,59 @@ const buildRawPayload = async (userId) => {
   };
 };
 
+const handleMlNetworkError = (res, err) => {
+  const isAbort =
+    err?.name === "AbortError" ||
+    (typeof err?.message === "string" && err.message.toLowerCase().includes("aborted"));
+
+  // TypeError: fetch failed (ECONNREFUSED, DNS, dsb)
+  const isFetchFailed =
+    err instanceof TypeError ||
+    (typeof err?.message === "string" && err.message.toLowerCase().includes("fetch failed"));
+
+  if (isAbort) {
+    return res.status(502).json({
+      message: "ML service timeout",
+      detail: `Request to ML exceeded ${ML_TIMEOUT_MS}ms`,
+    });
+  }
+
+  if (isFetchFailed) {
+    return res.status(502).json({
+      message: "ML service unreachable",
+      detail: `Cannot reach ML service at ${ML_BASE_URL}`,
+    });
+  }
+
+  return null;
+};
+
 export const generateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
     const raw = await buildRawPayload(userId);
 
-    const resp = await fetchWithTimeout(`${ML_BASE_URL}/profile/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(raw),
-    });
+    let resp;
+    try {
+      resp = await fetchWithTimeout(`${ML_BASE_URL}/profile/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(raw),
+      });
+    } catch (err) {
+      console.error("Generate profile fetch error:", err);
+      const handled = handleMlNetworkError(res, err); 
+      if (handled) return handled;
+      return res.status(502).json({ message: "ML service error", detail: err.message });
+    }
 
     if (!resp.ok) {
-      const text = await resp.text();
-      return res.status(502).json({ message: "ML service error", detail: text });
+      const text = await resp.text().catch(() => "");
+      return res.status(502).json({
+        message: "ML service error",
+        status: resp.status,
+        detail: text || `ML responded with status ${resp.status}`,
+      });
     }
 
     const payload = await resp.json();
@@ -70,15 +109,27 @@ export const generateRecommendations = async (req, res) => {
     const userId = req.user._id;
     const raw = await buildRawPayload(userId);
 
-    const resp = await fetchWithTimeout(`${ML_BASE_URL}/recommendations/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(raw),
-    });
+    let resp;
+    try {
+      resp = await fetchWithTimeout(`${ML_BASE_URL}/recommendations/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(raw),
+      });
+    } catch (err) {
+      console.error("Generate recommendations fetch error:", err);
+      const handled = handleMlNetworkError(res, err);
+      if (handled) return handled;
+      return res.status(502).json({ message: "ML service error", detail: err.message });
+    }
 
     if (!resp.ok) {
-      const text = await resp.text();
-      return res.status(502).json({ message: "ML service error", detail: text });
+      const text = await resp.text().catch(() => "");
+      return res.status(502).json({
+        message: "ML service error",
+        status: resp.status,
+        detail: text || `ML responded with status ${resp.status}`,
+      });
     }
 
     const payload = await resp.json();

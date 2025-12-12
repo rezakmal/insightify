@@ -9,6 +9,7 @@ import quizRoutes from "./routes/quiz.routes.js";
 import learningRoutes from "./routes/learning.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import mlRoutes from "./routes/ml.routes.js";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
@@ -33,6 +34,21 @@ app.use(
   })
 );
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const mlLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+
 app.use(express.json());
 
 connectDB();
@@ -46,6 +62,8 @@ app.use("/api/users", learningRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/ml", mlRoutes);
+app.use("/api/auth", authLimiter);
+app.use("/api/ml", mlLimiter);
 
 // CHANGED: 404 handler (JSON, not HTML)
 app.use((req, res) => {
