@@ -1,7 +1,8 @@
+import { getClusterInfo } from "../config/clusterMap.js";
 import MlProfile from "../models/MlProfile.js";
 import MlRecommendation from "../models/MlRecommendation.js";
 
-const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:3000";
 const ML_TIMEOUT_MS = parseInt(process.env.ML_TIMEOUT_MS || "15000", 10);
 
 const fetchWithTimeout = async (url, options = {}) => {
@@ -95,26 +96,28 @@ export const generateRecommendations = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    let resp;
-    try {
-      resp = await callClusterInference(userId);
-    } catch (err) {
-      console.error("Generate recommendations fetch error:", err);
-      const handled = handleMlNetworkError(res, err);
-      if (handled) return handled;
-      return res.status(502).json({ message: "ML service error", detail: err.message });
-    }
+    const profileDoc = await MlProfile.findOne({ userId }).select("-__v");
 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => "");
-      return res.status(502).json({
-        message: "ML service error",
-        status: resp.status,
-        detail: text || `ML responded with status ${resp.status}`,
+    if (!profileDoc?.payload?.result?.cluster && !profileDoc?.payload?.result?.cluster === 0) {
+      return res.status(400).json({
+        message: "Profile not generated yet",
+        detail: "Call /api/ml/profile/generate first",
       });
     }
 
-    const payload = await resp.json();
+    const cluster = profileDoc.payload.result.cluster;
+    const info = getClusterInfo(cluster);
+
+    const payload = {
+      userId: userId.toString(),
+      cluster,
+      label: info.label,
+      summary: info.summary,
+      strengths: info.strengths,
+      risks: info.risks,
+      tips: info.tips,
+      nextAction: null,
+    };
 
     await MlRecommendation.findOneAndUpdate(
       { userId },
@@ -125,7 +128,10 @@ export const generateRecommendations = async (req, res) => {
     return res.json({ message: "Recommendations generated", payload });
   } catch (err) {
     console.error("Generate recommendations error:", err);
-    return res.status(500).json({ message: "Failed to generate recommendations", error: err.message });
+    return res.status(500).json({
+      message: "Failed to generate recommendations",
+      error: err.message,
+    });
   }
 };
 

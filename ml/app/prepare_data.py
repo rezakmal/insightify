@@ -99,16 +99,36 @@ class Prepare:
         if quiz_results.empty:
             return pd.DataFrame()
 
-        quiz_ids = quiz_results["quizId"].dropna().tolist()
-        quiz_ids = [
-            oid if isinstance(oid, ObjectId) else ObjectId(str(oid)) for oid in quiz_ids
+        # quiz_ids = quiz_results["quizId"].dropna().tolist()
+        # quiz_ids = [
+        #     oid if isinstance(oid, ObjectId) else ObjectId(str(oid)) for oid in quiz_ids
+        # ]
+
+        # quiz_df = self.fetch.fetch_quizzes(quiz_ids)
+
+        if "moduleId" not in quiz_results.columns:
+            return quiz_results
+
+        quiz_results = quiz_results.copy()
+        quiz_results["moduleId_str"] = quiz_results["moduleId"].astype(str)
+
+        module_ids = quiz_results["moduleId"].dropna().tolist()
+        module_ids = [
+            oid if isinstance(oid, ObjectId) else ObjectId(str(oid)) for oid in module_ids
         ]
 
-        quiz_df = self.fetch.fetch_quizzes(quiz_ids)
+        quiz_df = list(db.quizzes.find({"moduleId": {"$in": module_ids}}))
+        quiz_df = pd.DataFrame(quiz_df)     
+
+
         if not quiz_df.empty:
+            quiz_df = quiz_df.copy()
+            quiz_df["moduleId_str"] = quiz_df["moduleId"].astype(str)
             quiz_df = quiz_df.rename(columns={"_id": "quizId"})
 
-        merged = quiz_results.merge(quiz_df, on="quizId", how="left")
+        merged = quiz_results.merge(quiz_df, on="moduleId_str", how="left")
+        
+        
 
         # Compute exam time utilization percentage (duration vs allowed time)
         if "duration" in merged.columns and "maximumDuration" in merged.columns:
@@ -117,6 +137,10 @@ class Prepare:
             merged["time_utilization_pct"] = merged["time_utilization_pct"].clip(
                 lower=0
             )
+
+        # DEBUG
+        print("merged columns:", merged.columns.tolist())
+        print("merged head:", merged.head(1).to_dict(orient="records"))
 
         return merged
 

@@ -35,6 +35,10 @@ const quizResultSchema = new Schema(
       type: Number,
       min: 0,
     },
+    examFinishedAt: {
+      type: Date,
+      index: true,
+    },
     timestamp: {
       type: Date,
       default: Date.now,
