@@ -18,7 +18,8 @@ const quizSchema = new mongoose.Schema({
       options: { type: [String], required: true }, // expect 4 options
       answer: { type: Number, required: true } // index 0..3
     }
-  ]
+  ],
+  maximumDuration: { type: Number, required: true }
 });
 
 export default mongoose.model("Quiz", quizSchema);
