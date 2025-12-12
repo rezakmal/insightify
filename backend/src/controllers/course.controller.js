@@ -60,92 +60,95 @@ export const getModulesByCourse = async (req, res) => {
   }
 };
 
-// GET /courses/:courseId/progress
-// Query: ?userId=...
+// GET /api/courses/:courseId/progress
 export const getCourseProgress = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId;
+    const userId = req.user._id;
     const courseId = req.params.courseId;
-
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
 
     const course = await Course.findById(courseId).populate("modules.moduleId");
     if (!course) return res.status(404).json({ message: "Course not found" });
 
     const totalModules = course.modules.length;
-    // Ambil quizResult yang passed untuk menghitung progress
-    // Get all module IDs from course
-    const moduleIds = course.modules.map(m => m.moduleId._id || m.moduleId);
-    const results = await QuizResult.find({ userId, moduleId: { $in: moduleIds } });
 
-    // treat passed==true as completed
-    const passedModuleIds = results.filter(r => r.passed).map(r => r.moduleId.toString());
+    const moduleIds = course.modules.map((m) => (m.moduleId?._id ? m.moduleId._id : m.moduleId));
+
+    const results = await QuizResult.find({
+      userId,
+      moduleId: { $in: moduleIds },
+      passed: true,
+    }).select("moduleId passed");
+
+    const passedModuleIds = results.map((r) => r.moduleId.toString());
     const completedModules = passedModuleIds.length;
 
-    const progress = totalModules === 0 ? 0 : Math.round((completedModules / totalModules) * 100);
+    const progressPercentage =
+      totalModules === 0 ? 0 : Math.round((completedModules / totalModules) * 100);
 
-    // next module logic: first module in order that is not yet passed
-    const ordered = course.modules.slice().sort((a,b) => (a.order||0) - (b.order||0));
+    const ordered = course.modules
+      .slice()
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
     let nextModule = null;
-    for (let i=0;i<ordered.length;i++){
-      const mId = ordered[i].moduleId._id.toString();
+    for (const item of ordered) {
+      const mId = (item.moduleId?._id ? item.moduleId._id : item.moduleId).toString();
       if (!passedModuleIds.includes(mId)) {
-        nextModule = ordered[i].moduleId;
+        nextModule = item.moduleId;
         break;
       }
     }
 
     const isFinished = completedModules === totalModules;
 
-    res.json({
+    return res.json({
       courseId,
       totalModules,
       completedModules,
-      progressPercentage: progress,
+      progressPercentage,
       isFinished,
-      nextModule
+      nextModule,
     });
-
   } catch (err) {
-    res.status(500).json({ message: "Failed to get progress", error: err.message });
+    console.error("Get course progress error:", err);
+    return res.status(500).json({ message: "Failed to get progress", error: err.message });
   }
 };
 
 // POST /api/courses/enroll
-// Body: { userId: "...", courseId: "..." }
 export const enrollCourse = async (req, res) => {
   try {
-    const { userId, courseId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
+    const userId = req.user._id;
+    const { courseId } = req.body;
 
     if (!courseId) {
       return res.status(400).json({ message: "courseId is required" });
     }
 
-    const exists = await UserCourse.findOne({
-      userId,
-      courseId
-    });
+    const course = await Course.findById(courseId).select("_id");
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
 
-    if (exists)
+    const exists = await UserCourse.findOne({ userId, courseId });
+    if (exists) {
       return res.json({ message: "Already enrolled", data: exists });
+    }
 
-    const userCourse = await UserCourse.create({
-      userId,
-      courseId
+    const userCourse = await UserCourse.create({ userId, courseId });
+
+    await Activity.create({
+      user: userId,
+      course: courseId,
+      type: "course_enroll",
+      occurredAt: new Date(),
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Course enrolled",
-      data: userCourse
+      data: userCourse,
     });
-
   } catch (err) {
-    res.status(500).json({ message: "Failed to enroll", error: err.message });
+    console.error("Enroll course error:", err);
+    return res.status(500).json({ message: "Failed to enroll", error: err.message });
   }
 };

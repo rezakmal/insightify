@@ -7,90 +7,95 @@ import UserCourse from "../models/UserCourse.js";
 // POST /api/quiz/:moduleId/start
 export const startQuiz = async (req, res) => {
   try {
-    const quiz = await Quiz.findOne({ moduleId: req.params.moduleId });
-    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    const moduleId = req.params.moduleId;
+    const quiz = await Quiz.findOne({ moduleId });
 
-    // Each question has 4 options (A, B, C, D)
-    const questions = quiz.questions.map(q => {
-      // Return options as A, B, C, D format for frontend
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    const questions = quiz.questions.map((q) => {
       const options = q.options.map((opt, idx) => ({
         label: String.fromCharCode(65 + idx), // A, B, C, D
-        text: opt
+        text: opt,
       }));
-      
+
       return {
         questionId: q.id.toString(),
         question: q.question,
-        options: options
+        options,
       };
     });
 
-    res.json({ 
-      moduleId: req.params.moduleId, 
-      questions: questions, 
-      totalQuestions: questions.length
+    return res.json({
+      moduleId,
+      deadlineAt: quiz.deadlineAt || null,
+      questions,
+      totalQuestions: questions.length,
     });
   } catch (err) {
-    res.status(500).json({ message: "Failed to start quiz", error: err.message });
+    console.error("Start quiz error:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to start quiz", error: err.message });
   }
 };
 
 // POST /api/quiz/:moduleId/submit
-// body: { userId: "...", answers: [ { questionId: "...", selectedOption: "A" or "B" or "C" or "D" }, ... ], courseId: "..." }
+// body: { courseId: "...", answers: [ { questionId, selectedOption: "A"/"B"/"C"/"D" } ] }
 export const submitQuiz = async (req, res) => {
-  const { answers, courseId, userId } = req.body;
+  const userId = req.user._id;
+  const moduleId = req.params.moduleId;
+  const { answers, courseId } = req.body;
 
   if (!courseId) {
     return res.status(400).json({ message: "courseId is required" });
   }
 
-  if (!userId) {
-    return res.status(400).json({ message: "userId is required" });
+  if (!Array.isArray(answers) || answers.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "answers array is required and cannot be empty" });
   }
 
   try {
-    const moduleId = req.params.moduleId;
     const quiz = await Quiz.findOne({ moduleId });
 
-    if (!quiz)
+    if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
+    }
 
     let correct = 0;
     const total = quiz.questions.length;
 
-    // Process answers - answers format: [{ questionId: "...", selectedOption: "A"/"B"/"C"/"D" }]
-    // Convert selectedOption (A/B/C/D) to index (0/1/2/3) and compare with correct answer index
     answers.forEach((answer) => {
-      const question = quiz.questions.find(q => q.id.toString() === answer.questionId);
-      if (question) {
-        // Convert A/B/C/D to index (0/1/2/3)
+      const question = quiz.questions.find(
+        (q) => q.id.toString() === answer.questionId
+      );
+      if (question && typeof answer.selectedOption === "string") {
         const selectedIndex = answer.selectedOption.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
-        
-        // Check if selected index matches correct answer index
+
         if (selectedIndex === question.answer) {
           correct++;
         }
       }
     });
 
-    // Calculate score: (correct / total) * 100
     const score = Math.round((correct / total) * 100);
-    const passed = score >= 70; // 70% passing threshold
+    const passed = score >= 70;
 
-    // Save to QuizResult collection
-    await QuizResult.create({
+    const quizResult = await QuizResult.create({
       userId,
       moduleId,
       score,
       totalQuestions: total,
-      passed
+      passed,
     });
 
-    // Update UserCourse quizResults array
     await UserCourse.updateOne(
       {
         userId,
-        courseId
+        courseId,
       },
       {
         $push: {
@@ -100,22 +105,37 @@ export const submitQuiz = async (req, res) => {
             total,
             score,
             passed,
-            timestamp: new Date()
-          }
-        }
+            timestamp: new Date(),
+          },
+        },
       },
-      { upsert: true } // Create UserCourse if doesn't exist
+      { upsert: true }
     );
 
-    res.json({
+    await Activity.create({
+      user: userId,
+      course: courseId,
+      module: moduleId,
+      type: "quiz_submit",
+      occurredAt: new Date(),
+      metadata: {
+        score,
+        passed,
+        quizResultId: quizResult._id,
+      },
+    });
+
+    return res.json({
       message: "Quiz submitted",
       correct,
       total,
       score,
-      passed
+      passed,
     });
-
   } catch (err) {
-    res.status(500).json({ message: "Failed to submit quiz", error: err.message });
+    console.error("Submit quiz error:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to submit quiz", error: err.message });
   }
 };
