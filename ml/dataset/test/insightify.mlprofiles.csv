@@ -1,0 +1,2 @@
+_id,userId,__v,createdAt,generatedAt,payload.user_id,payload.result.cluster,payload.result.distance,updatedAt
+693d5532b1a8d542b7c001d2,693d55326da7b2a751d03ac8,0,2025-12-13T11:59:46.526Z,2025-12-13T11:59:46.539Z,693d55326da7b2a751d03ac8,2,98.18605209583643,2025-12-13T11:59:46.540Z
