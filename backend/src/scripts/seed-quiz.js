@@ -32,8 +32,8 @@ const seedQuizData = async () => {
 
     const quizDataArray = [
       {
-        moduleId: "693c66430aa65ab8d034e727",
-        maximalDuration: 600,
+        moduleId: "693d76a1c232be85db170a4f",
+        maximumDuration: 600,
         questions: [
           {
             question: "Apa itu JavaScript?",

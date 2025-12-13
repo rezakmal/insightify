@@ -19,18 +19,36 @@ class FetchData:
         self.user_id = ObjectId(self.user_id)
     def fetch_activity(self) -> pd.DataFrame:
         """Raw activity rows for the user (all fields)."""
-        activity = list(db.activities.find({"userId": self.user_id}))
+        activity = list(db.activities.find({"user": self.user_id}))
         return pd.DataFrame(activity)
 
     def fetch_activity_minimal(self) -> pd.DataFrame:
         """Activity rows with only fields needed for timelines."""
         activity = list(
             db.activities.find(
-                {"userId": self.user_id},
-                {"userId": 1, "moduleId": 1, "status": 1, "timestamp": 1},
+                {"user": self.user_id},
+                {"user": 1, "module": 1, "type": 1, "occuredAt": 1},
             )
         )
-        return pd.DataFrame(activity)
+        df = pd.DataFrame(activity)
+
+        if df.empty:
+            return df
+
+        df = df.rename(columns={
+            "user": "userId",
+            "module": "moduleId",
+            "occurredAt": "timestamp",
+            "type": "status",
+        })
+
+        df["status"] = df["status"].map({
+            "module_start": "started",
+            "module_complete": "completed",
+        })
+
+        df = df[df["status"].notna()]
+        return df
 
     def fetch_quiz_results(self) -> pd.DataFrame:
         quiz_result = list(db.quizresults.find({"userId": self.user_id}))

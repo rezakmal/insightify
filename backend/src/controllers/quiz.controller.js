@@ -1,5 +1,4 @@
 import Quiz from "../models/Quiz.js";
-import Module from "../models/Module.js";
 import QuizResult from "../models/QuizResult.js";
 import Activity from "../models/Activity.js";
 import UserCourse from "../models/UserCourse.js";
@@ -10,13 +9,27 @@ export const startQuiz = async (req, res) => {
     const moduleId = req.params.moduleId;
     const quiz = await Quiz.findOne({ moduleId });
     const { courseId } = req.body || {};
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!courseId) {
+      return res.status(400).json({ message: "courseId is required" });
+    }
+
+    const enrolled = await UserCourse.findOne({ userId, courseId }).select("_id");
+    if (!enrolled) {
+      return res.status(403).json({ message: "Enroll to this course first" });
+    }
 
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
     }
 
-    if (!courseId) {
-      return res.status(400).json({ message: "courseId is required" });
+    if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+      return res.status(400).json({ message: "Quiz has no questions" });
     }
     const questions = quiz.questions.map((q) => {
       const options = q.options.map((opt, idx) => ({
@@ -32,7 +45,7 @@ export const startQuiz = async (req, res) => {
     });
 
     await Activity.create({
-      user: req.user._id,
+      user: userId,
       course: courseId,
       module: moduleId,
       type: "quiz_start",
@@ -79,6 +92,15 @@ export const submitQuiz = async (req, res) => {
 
     if (!quiz) {
       return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+      return res.status(400).json({ message: "Quiz has no questions" });
+    }
+
+    const enrolled = await UserCourse.findOne({ userId, courseId }).select("_id");
+    if (!enrolled) {
+      return res.status(403).json({ message: "Enroll to this course first" });
     }
 
     let correct = 0;

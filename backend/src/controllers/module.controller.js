@@ -24,11 +24,11 @@ export const getModuleById = async (req, res) => {
     const moduleData = await Module.findById(moduleId);
     if (!moduleData) return res.status(404).json({ message: "Module not found" });
 
-    // Optional: If user provides userId and courseId, check access rule
     const courseId = req.query.courseId;
-    const userId = req.query.userId;
+    const userId = req.user?._id;
 
-    if (courseId && userId) {
+    // enforce gating only when course context is provided
+    if (courseId) {
       const course = await Course.findById(courseId).populate("modules.moduleId");
       if (!course) return res.status(404).json({ message: "Course not found" });
       
@@ -42,6 +42,12 @@ export const getModuleById = async (req, res) => {
         if (!quizDone) {
           return res.status(403).json({ message: "You must complete the quiz of the previous module first." });
         }
+      }
+
+      // ensure enrollment
+      const enrolled = await UserCourse.findOne({ userId, courseId }).select("_id");
+      if (!enrolled) {
+        return res.status(403).json({ message: "Enroll to this course first" });
       }
     }
 
@@ -71,6 +77,11 @@ export const startModule = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
+    }
+
+    const userCourse = await UserCourse.findOne({ userId, courseId }).select("_id");
+    if (!userCourse) {
+      return res.status(403).json({ message: "Enroll to this course first" });
     }
 
     await Activity.create({
