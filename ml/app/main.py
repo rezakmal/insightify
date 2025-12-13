@@ -5,11 +5,16 @@ import joblib
 import numpy as np
 
 from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 
 from prepare_data import Prepare
 
 app = FastAPI()
+
+
+class InferenceRequest(BaseModel):
+    user_id: str
 
 class ClusterInferenceService:
     def __init__(self, model_path: Path, scaler_path: Path, centroids_path: Path):
@@ -69,25 +74,25 @@ def get_user_class():
 
 
 @app.post("/cluster-inference")
-def cluster_inference(user_id: str):
+def cluster_inference(request: InferenceRequest):
     """
     Predict cluster for a user using their user_id.
-    Inference logic will be delegated to ClusterInferenceService (to be implemented).
+    Accepts user_id in the request body as JSON.
     """
     start_time = time.perf_counter()
     INFERENCE_REQUESTS.inc()
     try:
-        result = service.infer(user_id=user_id)
+        result = service.infer(user_id=request.user_id)
         latency = time.perf_counter() - start_time
         INFERENCE_LATENCY.observe(latency)
-        logger.info("cluster-inference success user_id=%s latency=%.4fs", user_id, latency)
-        return {"user_id": user_id, "result": result}
+        logger.info("cluster-inference success user_id=%s latency=%.4fs", request.user_id, latency)
+        return {"user_id": request.user_id, "result": result}
     except NotImplementedError as exc:
         INFERENCE_ERRORS.inc()
         raise HTTPException(status_code=501, detail=str(exc))
     except Exception as exc:
         INFERENCE_ERRORS.inc()
-        logger.exception("cluster-inference failed user_id=%s error=%s", user_id, exc)
+        logger.exception("cluster-inference failed user_id=%s error=%s", request.user_id, exc)
         raise HTTPException(status_code=400, detail=str(exc))
 
 
