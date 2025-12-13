@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 const quizSchema = new mongoose.Schema({
   moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Module", required: true },
+  deadlineAt: {
+    type: Date,
+    required: false, // optional, bisa diisi admin kalau mau pake deadline
+  },
+  maximumDuration: {
+  type: Number,
+  default: 600, // 10 menit  
+  },
   questions: [
     {
       _id: false,

@@ -7,7 +7,7 @@ import UserCourse from "../models/UserCourse.js";
 // POST /api/modules
 export const createModule = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content } = req.body || {};
     if (!title) return res.status(400).json({ message: "Title required" });
     const mod = await Module.create({ title, content });
     return res.status(201).json({ message: "Module created", module: mod });
@@ -24,11 +24,11 @@ export const getModuleById = async (req, res) => {
     const moduleData = await Module.findById(moduleId);
     if (!moduleData) return res.status(404).json({ message: "Module not found" });
 
-    // Optional: If user provides userId and courseId, check access rule
     const courseId = req.query.courseId;
-    const userId = req.query.userId;
+    const userId = req.user?._id;
 
-    if (courseId && userId) {
+    // enforce gating only when course context is provided
+    if (courseId) {
       const course = await Course.findById(courseId).populate("modules.moduleId");
       if (!course) return res.status(404).json({ message: "Course not found" });
       
@@ -43,6 +43,12 @@ export const getModuleById = async (req, res) => {
           return res.status(403).json({ message: "You must complete the quiz of the previous module first." });
         }
       }
+
+      // ensure enrollment
+      const enrolled = await UserCourse.findOne({ userId, courseId }).select("_id");
+      if (!enrolled) {
+        return res.status(403).json({ message: "Enroll to this course first" });
+      }
     }
 
     return res.json(moduleData);
@@ -56,11 +62,8 @@ export const getModuleById = async (req, res) => {
 export const startModule = async (req, res) => {
   try {
     const moduleId = req.params.moduleId;
-    const { userId, courseId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
+    const userId = req.user._id;
+    const { courseId } = req.body;
 
     if (!courseId) {
       return res.status(400).json({ message: "courseId is required" });
@@ -71,19 +74,28 @@ export const startModule = async (req, res) => {
       return res.status(404).json({ message: "Module not found" });
     }
 
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const userCourse = await UserCourse.findOne({ userId, courseId }).select("_id");
+    if (!userCourse) {
+      return res.status(403).json({ message: "Enroll to this course first" });
+    }
+
     await Activity.create({
-      userId,
-      courseId,
-      moduleId,
-      status: "started"
+      user: userId,
+      course: courseId,
+      module: moduleId,
+      type: "module_start",
+      occurredAt: new Date()
     });
 
     return res.json({ message: "Module started" });
-
   } catch (err) {
     return res.status(500).json({
-      message: "Failed to start module",
-      error: err.message
+      message: "Failed to start module"
     });
   }
 };
@@ -94,66 +106,68 @@ export const startModule = async (req, res) => {
 export const completeModule = async (req, res) => {
   try {
     const moduleId = req.params.moduleId;
-    const { userId, courseId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
+    const userId = req.user._id;
+    const { courseId } = req.body || {};
 
     if (!courseId) {
       return res.status(400).json({ message: "courseId is required" });
     }
 
     const moduleData = await Module.findById(moduleId);
-    if (!moduleData)
+    if (!moduleData) {
       return res.status(404).json({ message: "Module not found" });
+    }
 
-    const userCourse = await UserCourse.findOne({
-      userId,
-      courseId
-    });
+    const userCourse = await UserCourse.findOne({ userId, courseId });
+    if (!userCourse) {
+      return res.status(400).json({ message: "User not enrolled in this course" });
+    }
 
-    if (!userCourse)
-      return res
-        .status(400)
-        .json({ message: "User not enrolled in this course" });
+    userCourse.completedModules = userCourse.completedModules || [];
 
-    // mark module as done
-    if (!userCourse.completedModules.includes(moduleData._id)) {
+    const alreadyCompleted = userCourse.completedModules.some(
+      (id) => id.toString() === moduleData._id.toString()
+    );
+
+    if (!alreadyCompleted) {
       userCourse.completedModules.push(moduleData._id);
     }
 
-    // count progress
     const course = await Course.findById(courseId).populate("modules.moduleId");
-    const totalModules = course ? course.modules.length : 0;
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" }); 
+    }
+
+    const totalModules = course.modules.length;
 
     const progress =
-      totalModules === 0 ? 0 : (userCourse.completedModules.length / totalModules) * 100;
+      totalModules === 0
+        ? 0
+        : Math.round((userCourse.completedModules.length / totalModules) * 100);
 
-    userCourse.progress = Math.round(progress);
-
-    // check whether the course is done or not
-    userCourse.isCompleted =
-      userCourse.completedModules.length === totalModules;
+    userCourse.progress = progress;
+    userCourse.isCompleted = userCourse.completedModules.length === totalModules;
 
     await userCourse.save();
 
-    // create activity log
     await Activity.create({
-      userId,
-      courseId,
-      moduleId,
-      status: "completed"
+      user: userId,
+      course: courseId,
+      module: moduleId,
+      type: "module_complete",
+      occurredAt: new Date(),
     });
 
-    res.json({
+    return res.json({
       message: "Module completed",
       progress: userCourse.progress,
-      isCompleted: userCourse.isCompleted
+      isCompleted: userCourse.isCompleted,
     });
-
   } catch (err) {
-    res.status(500).json({ message: "Failed to complete module", error: err.message });
+    console.error("Complete module error:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to complete module", error: err.message });
   }
 };
 
@@ -162,26 +176,45 @@ export const completeModule = async (req, res) => {
 export const getModuleStatus = async (req, res) => {
   try {
     const moduleId = req.params.moduleId;
-    const userId = req.query.userId || req.body.userId;
+    const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
-    }
+    const logs = await Activity.find({
+      user: userId,
+      module: moduleId,
+    }).sort({ occurredAt: -1 });
 
-    const logs = await Activity.find({ userId, moduleId }).sort({ timestamp: -1 });
-    const quizRes = await QuizResult.findOne({ userId, moduleId }).sort({ timestamp: -1 });
+    const quizRes = await QuizResult.findOne({
+      userId,
+      moduleId,
+    }).sort({ timestamp: -1 });
 
     if (!logs || logs.length === 0) {
-      return res.json({ status: "not_started", quizResult: quizRes || null });
+      return res.json({
+        status: "not_started",
+        quizResult: quizRes || null,
+      });
     }
 
-    const latest = logs[0];
-    if (latest.status === "completed") {
-      return res.json({ status: (quizRes && quizRes.passed) ? "completed" : "completed_not_passed", quizResult: quizRes || null });
+    const hasCompleted = logs.some((log) => log.type === "module_complete");
+
+    if (hasCompleted) {
+      const status =
+        quizRes && quizRes.passed ? "completed" : "completed_not_passed";
+
+      return res.json({
+        status,
+        quizResult: quizRes || null,
+      });
     }
 
-    return res.json({ status: "in_progress", quizResult: quizRes || null });
+    return res.json({
+      status: "in_progress",
+      quizResult: quizRes || null,
+    });
   } catch (err) {
-    return res.status(500).json({ message: "Failed to get module status", error: err.message });
+    console.error("Get module status error:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to get module status", error: err.message });
   }
 };
