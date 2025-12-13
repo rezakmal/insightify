@@ -16,7 +16,7 @@ class FetchData:
     def __init__(self, user_id):
         self.user_id = user_id
         # ensure user_id is ObjectId
-        self.user_id = ObjectId(self.user_id)
+        # self.user_id = ObjectId(self.user_id)
     def fetch_activity(self) -> pd.DataFrame:
         """Raw activity rows for the user (all fields)."""
         activity = list(db.activities.find({"user": self.user_id}))
@@ -27,10 +27,11 @@ class FetchData:
         activity = list(
             db.activities.find(
                 {"user": self.user_id},
-                {"user": 1, "module": 1, "type": 1, "occuredAt": 1},
+                {"user": 1, "module": 1, "type": 1, "occurredAt": 1},
             )
         )
         df = pd.DataFrame(activity)
+        print(df)
 
         if df.empty:
             return df
@@ -51,13 +52,19 @@ class FetchData:
         return df
 
     def fetch_quiz_results(self) -> pd.DataFrame:
-        quiz_result = list(db.quizresults.find({"userId": self.user_id}))
+        quiz_result = list(db.quizresults.find(
+            {"userId": self.user_id}, 
+            {"userId": 1, "moduleId": 1, "score": 1, "passed": 1, "duration": 1}
+        ))
         return pd.DataFrame(quiz_result)
 
-    def fetch_quizzes(self, quiz_ids) -> pd.DataFrame:
-        if not quiz_ids:
+    def fetch_quizzes(self, module_ids) -> pd.DataFrame:
+        if not module_ids:
             return pd.DataFrame()
-        quiz = list(db.quizzes.find({"_id": {"$in": quiz_ids}}))
+        quiz = list(db.quizzes.find(
+            {"moduleId": {"$in": module_ids}},
+            {"_id": 1, "moduleId": 1, "maximumDuration": 1}
+        ))
         return pd.DataFrame(quiz)
 
 class Prepare:
@@ -89,6 +96,7 @@ class Prepare:
         completed_at: earliest 'completed' timestamp
         """
         df_act = self.fetch.fetch_activity_minimal()
+        # print(df_act.columns)
         if df_act.empty:
             return df_act
 
@@ -114,37 +122,31 @@ class Prepare:
         Returns one row per quiz result with started_at/completed_at.
         """
         quiz_results = self.fetch.fetch_quiz_results()
+        # print(quiz_results.columns)
         if quiz_results.empty:
             return pd.DataFrame()
-
-        # quiz_ids = quiz_results["quizId"].dropna().tolist()
-        # quiz_ids = [
-        #     oid if isinstance(oid, ObjectId) else ObjectId(str(oid)) for oid in quiz_ids
-        # ]
-
-        # quiz_df = self.fetch.fetch_quizzes(quiz_ids)
 
         if "moduleId" not in quiz_results.columns:
             return quiz_results
 
         quiz_results = quiz_results.copy()
-        quiz_results["moduleId_str"] = quiz_results["moduleId"].astype(str)
+        # quiz_results["moduleId_str"] = quiz_results["moduleId"].astype(str)
 
         module_ids = quiz_results["moduleId"].dropna().tolist()
-        module_ids = [
-            oid if isinstance(oid, ObjectId) else ObjectId(str(oid)) for oid in module_ids
-        ]
 
-        quiz_df = list(db.quizzes.find({"moduleId": {"$in": module_ids}}))
-        quiz_df = pd.DataFrame(quiz_df)     
+        quiz_df = self.fetch.fetch_quizzes(module_ids)     
+        # print(quiz_df.columns)
+        # print(quiz_results.columns)
 
+        # Ensure quiz_df has the expected columns even if empty
+        if quiz_df.empty:
+            raise ValueError("Quiz dataframe is empty")
 
-        if not quiz_df.empty:
-            quiz_df = quiz_df.copy()
-            quiz_df["moduleId_str"] = quiz_df["moduleId"].astype(str)
-            quiz_df = quiz_df.rename(columns={"_id": "quizId"})
+        quiz_df = quiz_df.copy()
+        # quiz_df = quiz_df.rename(columns={"_id": "quizId"})
 
-        merged = quiz_results.merge(quiz_df, on="moduleId_str", how="left")
+        merged = quiz_results.merge(quiz_df, on="moduleId", how="left")
+        print("Merge raw: ", merged.columns)
         
         
 
@@ -235,24 +237,16 @@ class Prepare:
 
 
 if __name__ == "__main__":
-    # target Feature
-    features_final = [
-        'avg_study_duration',   # Produktivitas
-        'avg_time_utilization',        # Ketelitian/Penggunaan Waktu (0-100)
-        'average_score', # Kejagoan
-        'consistency_ratio',           # Disiplin
-        # 'avg_time_left_minutes',       # Kecepatan (Makin tinggi = makin cepat)
-        # 'revisit_rate'            # Pengulangan
-        'pass_rate'
-    ]
-    prepare = Prepare(user_id="6549a1f0509b9b21caffdb37")
-    df_features = prepare.prepare_features()
-    # check if features final is in df_features
-    dfs_col = df_features.columns
-    for col in features_final:
-        if col not in dfs_col:
-            print(f"Column {col} not found in df_features")
-            break
-    else:
-        print(f"All columns found in df_features")
-    # print(df_features)
+    # # target Feature
+    # features_final = [
+    #     'avg_study_duration',   # Produktivitas
+    #     'avg_time_utilization',        # Ketelitian/Penggunaan Waktu (0-100)
+    #     'average_score', # Kejagoan
+    #     'consistency_ratio',           # Disiplin
+    #     # 'avg_time_left_minutes',       # Kecepatan (Makin tinggi = makin cepat)
+    #     # 'revisit_rate'            # Pengulangan
+    #     'pass_rate'
+    # ]
+    prepare = Prepare(user_id="693d55326da7b2a751d03ac8")
+    # print(prepare.prepare_quiz().to_csv('dataset/quiz_prepare_on_test.csv', index=False))
+    prepare.prepare_features().to_csv("test.csv", index=False)

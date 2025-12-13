@@ -1,0 +1,2 @@
+_id,userId,__v,createdAt,generatedAt,payload.userId,payload.cluster,payload.label,payload.summary,payload.strengths[0],payload.risks[0],payload.tips[0],payload.nextAction,updatedAt
+693d5532b1a8d542b7c001d3,693d55326da7b2a751d03ac8,0,2025-12-13T11:59:46.552Z,2025-12-13T11:59:46.564Z,693d55326da7b2a751d03ac8,2,Cluster 2,tar diisi tim ML,nganu,nganu,nganu,,2025-12-13T11:59:46.564Z
