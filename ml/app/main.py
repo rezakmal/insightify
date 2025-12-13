@@ -17,15 +17,13 @@ class InferenceRequest(BaseModel):
     user_id: str
 
 class ClusterInferenceService:
-    def __init__(self, model_path: Path, scaler_path: Path, centroids_path: Path):
+    def __init__(self, model_path: Path, scaler_path: Path):
         self.model_path = model_path
         self.scaler_path = scaler_path
-        self.centroids_path = centroids_path
 
-        # load model, scaler, centroids
-        # self.model = joblib.load(self.model_path)
+        # load model and scaler
+        self.model = joblib.load(self.model_path)
         self.scaler = joblib.load(self.scaler_path)
-        self.centroids = np.load(self.centroids_path)
 
     def infer(self, user_id: str):
         # prepare data
@@ -33,20 +31,81 @@ class ClusterInferenceService:
         df_features = prepare.prepare_features()
         # scale data
         df_features_scaled = self.scaler.transform(df_features)
-        # assign to nearest centroid (Agglomerative lacks predict)
-        distances = np.linalg.norm(self.centroids - df_features_scaled, axis=1)
-        best_idx = int(np.argmin(distances))
-        return {"cluster": best_idx, "distance": float(distances[best_idx])}
+        # predict cluster using KMeans
+        cluster = int(self.model.predict(df_features_scaled)[0])
+        # calculate distance to assigned centroid
+        centroid = self.model.cluster_centers_[cluster]
+        distance = float(np.linalg.norm(df_features_scaled - centroid))
+        return {"cluster": cluster, "distance": distance, "learner_type": self.translate(cluster)}
+    
+    def translate(self, cluster):
+        cluster_interpretation = {
+            0: {
+                "learner_type": "Slow but Sure",
+                "strength": [
+                    "Mampu belajar dalam durasi panjang saat termotivasi",
+                    "Hasil akademik cukup baik meskipun tidak rutin",
+                    "Tahan terhadap beban belajar berat dalam satu waktu"
+                ],
+                "weakness": [
+                    "Konsistensi belajar rendah",
+                    "Cenderung belajar secara meledak-ledak (cramming)",
+                    "Efisiensi waktu belajar kurang optimal"
+                ],
+                "tips": [
+                    "Ubah pola belajar marathon menjadi sesi singkat namun rutin",
+                    "Gunakan milestone kecil untuk menjaga momentum",
+                    "Fokus pada keberlanjutan belajar, bukan ledakan produktivitas"
+                ]
+            },
+
+            1: {
+                "learner_type": "Performative Learner",
+                "strength": [
+                    "Konsistensi belajar sangat tinggi",
+                    "Pemanfaatan waktu belajar paling efisien",
+                    "Performa akademik stabil dan unggul"
+                ],
+                "weakness": [
+                    "Durasi belajar sangat singkat",
+                    "Potensi eksplorasi materi lanjutan belum maksimal"
+                ],
+                "tips": [
+                    "Dorong eksplorasi materi lanjutan dan studi kasus kompleks",
+                    "Tambahkan challenge berbasis problem nyata",
+                    "Pertahankan presisi, tingkatkan kedalaman pemahaman"
+                ]
+            },
+
+            2: {
+                "learner_type": "Wandering Learner",
+                "strength": [
+                    "Masih menunjukkan usaha belajar secara berkala",
+                    "Tidak sepenuhnya pasif dalam proses belajar"
+                ],
+                "weakness": [
+                    "Performa akademik rendah",
+                    "Konsistensi belajar lemah",
+                    "Pemanfaatan waktu belajar tidak terarah"
+                ],
+                "tips": [
+                    "Berikan struktur belajar yang jelas dan bertahap",
+                    "Fokus pada penguatan konsep dasar",
+                    "Gunakan feedback cepat untuk menghindari kehilangan arah belajar"
+                ]
+            }
+        }
+        return cluster_interpretation[cluster]
+
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "models" / "agg_model_41_4n.pkl"
-SCALER_PATH = BASE_DIR / "models" / "agg_scaler.pkl"
-CENTROIDS_PATH = BASE_DIR / "models" / "agg_centroids.npy"
+MODEL_PATH = BASE_DIR / "models" / "kmeans_model_37_3n_2.pkl"
+SCALER_PATH = BASE_DIR / "models" / "kmeans_scaler_1.pkl"
+
 service = ClusterInferenceService(
     model_path=MODEL_PATH,
     scaler_path=SCALER_PATH,
-    centroids_path=CENTROIDS_PATH,
 )
 
 # Prometheus metrics

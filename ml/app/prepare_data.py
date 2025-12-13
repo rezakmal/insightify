@@ -201,7 +201,7 @@ class Prepare:
         activity_by_module = self.prepare_activity_by_module()
         quiz_df = self.prepare_quiz()
 
-        avg_study_duration = self._compute_avg_study_duration(activity_by_module)
+        avg_study_duration = self._compute_avg_study_duration(activity_by_module) / 60
         avg_time_utilization = self._nan_to_zero(
             quiz_df["time_utilization_pct"].dropna().mean()
             if not quiz_df.empty and "time_utilization_pct" in quiz_df.columns
