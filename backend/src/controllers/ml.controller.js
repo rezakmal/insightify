@@ -1,9 +1,11 @@
 import { getClusterInfo } from "../config/clusterMap.js";
 import MlProfile from "../models/MlProfile.js";
 import MlRecommendation from "../models/MlRecommendation.js";
+import Activity from "../models/Activity.js";
 
 const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:3000";
 const ML_TIMEOUT_MS = parseInt(process.env.ML_TIMEOUT_MS || "15000", 10);
+const ML_MIN_HISTORY_DAYS = parseInt(process.env.ML_MIN_HISTORY_DAYS || "14", 10);
 
 const fetchWithTimeout = async (url, options = {}) => {
   const controller = new AbortController();
@@ -54,9 +56,35 @@ const callClusterInference = async (userId) => {
   return await fetchWithTimeout(url, { method: "POST" });
 };
 
+// check whether user has enough activity history
+const hasSufficientHistory = async (userId) => {
+  const firstActivity = await Activity.findOne({ user: userId })
+    .sort({ occurredAt: 1 })
+    .select("occurredAt");
+
+  if (!firstActivity?.occurredAt) return { ok: false, daysElapsed: 0 };
+
+  const daysElapsed = Math.floor(
+    (Date.now() - new Date(firstActivity.occurredAt).getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  return { ok: daysElapsed >= ML_MIN_HISTORY_DAYS, daysElapsed };
+};
+
 export const generateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
+
+    const hist = await hasSufficientHistory(userId);
+    if (!hist.ok) {
+      return res.json({
+        message: "Insufficient history for insight",
+        pending: true,
+        daysElapsed: hist.daysElapsed,
+        requiredDays: ML_MIN_HISTORY_DAYS,
+      });
+    }
 
     let resp;
     try {
@@ -102,6 +130,16 @@ export const generateRecommendations = async (req, res) => {
       return res.status(400).json({
         message: "Profile not generated yet",
         detail: "Call /api/ml/profile/generate first",
+      });
+    }
+
+    const hist = await hasSufficientHistory(userId);
+    if (!hist.ok) {
+      return res.json({
+        message: "Insufficient history for insight",
+        pending: true,
+        daysElapsed: hist.daysElapsed,
+        requiredDays: ML_MIN_HISTORY_DAYS,
       });
     }
 

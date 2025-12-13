@@ -21,21 +21,21 @@ export default function DashboardPage() {
 
   const [overview, setOverview] = useState(null);
   const [rec, setRec] = useState(null);
+  const [pendingInfo, setPendingInfo] = useState(null); // ML pending because history not enough
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [toast, setToast] = useState({ type: "", text: "" });
 
-  const enoughSignal = useMemo(() => {
-    const events = overview?.totalEvents ?? 0;
-    return events >= 3; // threshold minimal biar ML gak ngarang
-  }, [overview]);
+  const minDays = useMemo(() => pendingInfo?.requiredDays || 14, [pendingInfo]);
+  const daysElapsed = useMemo(() => pendingInfo?.daysElapsed ?? null, [pendingInfo]);
 
   useEffect(() => {
     let alive = true;
 
     async function load() {
       setErr("");
+      setPendingInfo(null);
       setLoading(true);
 
       try {
@@ -54,22 +54,34 @@ export default function DashboardPage() {
         if (!alive) return;
         setRec(r);
 
-        // 2) Kalau belum ada rec, jangan generate kalau belum ada signal
+        // 2) Kalau belum ada rec, coba generate. Backend akan mengembalikan pending jika histori < minDays
         if (!r) {
-          const events = ov?.totalEvents ?? 0;
-          if (events < 3) {
-            // intentionally do nothing
+          const prof = await mlApi.generateProfile().catch(() => null);
+          if (prof?.pending) {
+            if (!alive) return;
+            setPendingInfo({
+              pending: true,
+              daysElapsed: prof.daysElapsed ?? 0,
+              requiredDays: prof.requiredDays ?? minDays,
+            });
             return;
           }
 
-          // generate hanya kalau sudah ada data yang masuk akal
-          await mlApi.generateProfile();
-          await mlApi.generateRecommendations();
+          const gen = await mlApi.generateRecommendations().catch(() => null);
+          if (gen?.pending) {
+            if (!alive) return;
+            setPendingInfo({
+              pending: true,
+              daysElapsed: gen.daysElapsed ?? 0,
+              requiredDays: gen.requiredDays ?? minDays,
+            });
+            return;
+          }
 
           const r2 = await mlApi.myRecommendations().catch(() => null);
           if (!alive) return;
           setRec(r2);
-          if (r2) setToast({ type: "success", text: "Insights generated based on your recent learning activity." });
+          if (r2) setToast({ type: "success", text: "Insights generated based on your learning history." });
           setTimeout(() => setToast({ type: "", text: "" }), 2500);
         }
       } catch (e) {
@@ -112,23 +124,22 @@ export default function DashboardPage() {
       </div>
 
       <Card title="Learning Insights">
-        {!enoughSignal ? (
+        {pendingInfo?.pending ? (
           <div className="space-y-3">
-            <Badge tone="neutral">Not enough activity</Badge>
+            <Badge tone="warning">Insights locked</Badge>
             <p className="text-sm text-slate-700 leading-relaxed">
-              You’re new here. Do a few learning actions first: start a module, take a quiz, submit results.
-              After that, insights will appear.
+              We need more history to compute consistency (min {minDays} days since your first activity).
+              Keep learning; insights will unlock automatically.
             </p>
             <div className="text-sm text-slate-600">
-              Minimum activity threshold: <b className="text-slate-900">3 events</b>.
+              Days elapsed: <b className="text-slate-900">{daysElapsed ?? 0}</b> / {minDays}
             </div>
           </div>
         ) : !persona ? (
           <div className="space-y-3">
             <Badge tone="warning">Insights pending</Badge>
             <p className="text-sm text-slate-700 leading-relaxed">
-              We have enough activity, but your insight hasn’t been generated yet. It should appear after profile
-              and recommendation generation succeeds.
+              We’re processing your data. Insights will appear after profile and recommendation generation succeeds.
             </p>
           </div>
         ) : (

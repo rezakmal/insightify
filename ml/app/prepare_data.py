@@ -27,7 +27,7 @@ class FetchData:
         activity = list(
             db.activities.find(
                 {"user": self.user_id},
-                {"user": 1, "module": 1, "type": 1, "occuredAt": 1},
+                {"user": 1, "module": 1, "type": 1, "occurredAt": 1},
             )
         )
         df = pd.DataFrame(activity)
